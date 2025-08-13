@@ -128,14 +128,18 @@ def insert_data(name:str)->None:
             data:list[Dict]=json.load(f)
             insertion_list=[]
             for dict in data:
+                fail=False
                 insertion_tuple=()
                 for key in norm_dict.keys():
                     try:
                         value=norm_dict[key].normalise_value(dict[key])
                         insertion_tuple+=(value,)
-                    except:#nothing really bad just incorrect value inserted
-                        logging.info(f"VALUE passed in file in {key} column was incorrect.")
-                insertion_list.append(insertion_tuple)
+                    except: #nothing really bad just incorrect value inserted
+                        logging.info(f"[WARNING] Value passed in file in {key} column was incorrect.")
+                        fail=True
+                        break
+                if not fail:
+                    insertion_list.append(insertion_tuple)
             with connection.cursor() as cursor:
                 query=sql.SQL("""INSERT INTO {} ({}) VALUES({})""").format\
                 (
