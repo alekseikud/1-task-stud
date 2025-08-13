@@ -1,8 +1,11 @@
 from scripts.connection import server_connect,server_disconnect
 from dotenv import load_dotenv
 from psycopg import Connection,sql
-import os,sqlparse
+import os,sqlparse,json
+from psycopg.sql import Composable
 from scripts.logger import logger
+from typing import Dict
+import logging
 
 load_dotenv()
 
@@ -99,3 +102,90 @@ def create_tables()->None:
                 if query:
                     cursor.execute(query) #type:ignore
                     connection.commit()
+
+@logger
+def insert_data(name:str)->None:
+    matching_files=[file for file in os.listdir("datasets") if name in file and file.endswith(".json") ]
+    if not matching_files:
+        raise ValueError("No such file in datasets directory")
+
+    connection=server_connect()
+    if not connection:
+        raise ConnectionError("No such file in datasets directory")
+    
+    column_parameters=[]
+    with connection.cursor() as cursor:
+        cursor.execute(sql.SQL("""SELECT column_name, data_type, is_nullable
+                            FROM information_schema.columns
+                            WHERE table_schema=%s and table_name=%s"""),params=("public",name))
+        column_parameters=cursor.fetchall()
+    if column_parameters is []:
+        raise ValueError("No columns in the table")
+    
+    norm_dict={parameter[0]:Normalisation(parameter) for parameter in column_parameters}# parameter[0] is column name
+    for file in matching_files:
+        with open("datasets/"+file,encoding="UTF-8") as f:
+            data:list[Dict]=json.load(f)
+            insertion_list=[]
+            for dict in data:
+                insertion_tuple=()
+                for key in norm_dict.keys():
+                    try:
+                        value=norm_dict[key].normalise_value(dict[key])
+                        insertion_tuple+=(value,)
+                    except:#nothing really bad just incorrect value inserted
+                        logging.info(f"VALUE passed in file in {key} column was incorrect.")
+                insertion_list.append(insertion_tuple)
+            with connection.cursor() as cursor:
+                query=sql.SQL("""INSERT INTO {} ({}) VALUES({})""").format\
+                (
+                    sql.Identifier(name),
+                    sql.SQL(",").join(map(sql.Identifier,norm_dict.keys())),
+                    sql.SQL(",").join(sql.Placeholder()*len(norm_dict.keys()))
+                )
+                for itr in insertion_list:
+                    print(itr)
+                cursor.executemany(query,params_seq=insertion_list)
+            connection.commit()
+        os.system("mkdir datasets/parsed")
+        os.system(f"mv datasets/'{file}' datasets/parsed")
+        print(f"mv datasets/'{file}' datasets/parsed")
+                
+
+
+ 
+class Normalisation:
+    def __init__(self,parameter:tuple[str,str,str])->None:
+        self._col_name,data_type,is_nullable=parameter
+
+        if is_nullable.casefold()=="yes".casefold():
+            self._is_nullable=True
+        else:
+            self._is_nullable=False
+
+        if data_type.casefold() in ("integer", "smallint", "bigint"):
+            self._data_type=int
+        elif data_type.casefold() in ("numeric", "real", "double precision", "decimal"):
+            self._data_type=float
+        elif data_type.casefold().startswith("character") or data_type.casefold() == "text":
+            self._data_type=str
+        elif data_type.casefold() in ("date",):
+            from datetime import datetime
+            self._data_type= datetime.fromisoformat
+        else:
+            # Unknown type — raise Error
+            raise TypeError("Unknown type")
+
+    def __str__(self)->str:
+        return str(self._col_name)+str(self._data_type)+str(self._is_nullable)
+    
+    def normalise_value(self,value):
+        if value is None and self._is_nullable==False:
+            raise ValueError
+        from datetime import datetime
+        if (self._data_type)==datetime.fromisoformat:
+            return datetime.fromisoformat(value)
+        try:
+            return self._data_type(value)
+        except:
+            raise ValueError()

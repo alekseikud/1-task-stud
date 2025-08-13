@@ -25,7 +25,11 @@ def logger(func):
             if isinstance(result,Connection):
                 result.add_notice_handler(handler)
             return result
-        except Exception as _ex:
+        except ValueError as _err:
+            logging.warning(f"""[VALUE] Function {func.__name__} ran with value error: {_err}""")
+        except ConnectionError as _err:
+            logging.warning(f"""[CONNECTION] Function {func.__name__} ran with connection error: {_err}""")
+        except BaseException as _ex:
             logging.error(f"""Function {func.__name__} ran with exception: {_ex}""")
             raise
 
