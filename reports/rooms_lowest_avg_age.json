@@ -1,1 +1,27 @@
-[{'id': 661, 'name': 'Room #661', 'average_age': 12.0}, {'id': 913, 'name': 'Room #913', 'average_age': 20.0}, {'id': 111, 'name': 'Room #111', 'average_age': 31.8}, {'id': 957, 'name': 'Room #957', 'average_age': 33.22222222222222}, {'id': 773, 'name': 'Room #773', 'average_age': 35.27272727272727}]
+[
+    {
+        "id": 661,
+        "name": "Room #661",
+        "average_age": 12.0
+    },
+    {
+        "id": 913,
+        "name": "Room #913",
+        "average_age": 20.0
+    },
+    {
+        "id": 111,
+        "name": "Room #111",
+        "average_age": 31.8
+    },
+    {
+        "id": 957,
+        "name": "Room #957",
+        "average_age": 33.22222222222222
+    },
+    {
+        "id": 773,
+        "name": "Room #773",
+        "average_age": 35.27272727272727
+    }
+]
