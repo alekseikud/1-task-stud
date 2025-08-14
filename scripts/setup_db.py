@@ -117,6 +117,15 @@ def load_funtions()->None:
                     cursor.execute(query) #type:ignore
                     connection.commit()
 
+def refresh_view(view_name:str="ages")->None:
+    connection:Connection|None=server_connect()
+    if not connection:
+        raise ConnectionError
+    with connection.cursor() as cursor:
+        from scripts.report import create_ages_view
+        create_ages_view()#ensure view exist
+        cursor.execute("""REFRESH MATERIALIZED VIEW "ages" """)
+        connection.commit()
 
 @logger
 def insert_data(name:str)->None:
@@ -170,13 +179,11 @@ def insert_data(name:str)->None:
                     sql.Identifier(next(iter(norm_dict.keys()))),
                     sql.Identifier(next(iter(norm_dict.keys())))
                 )
-                for itr in insertion_list:
-                    print(itr)
                 cursor.executemany(query,params_seq=insertion_list)
             connection.commit()
         os.system("mkdir datasets/parsed")
         os.system(f"mv datasets/'{file}' datasets/parsed")
-        print(f"mv datasets/'{file}' datasets/parsed")
+    refresh_view()#every insertion we refresh view
                 
 
 
