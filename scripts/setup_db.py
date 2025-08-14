@@ -104,8 +104,24 @@ def create_tables()->None:
                     connection.commit()
 
 @logger
+def load_funtions()->None:
+    connection:Connection|None=server_connect()
+    if not connection:
+       raise ConnectionError
+    with open("sql/functions.sql",encoding="UTF-8") as file:
+        raw_sql=file.read()
+        for q in sqlparse.split(raw_sql):
+            with connection.cursor() as cursor:
+                query=q.strip()
+                if query:
+                    cursor.execute(query) #type:ignore
+                    connection.commit()
+
+
+@logger
 def insert_data(name:str)->None:
-    matching_files=[file for file in os.listdir("datasets") if name in file and file.endswith(".json") ]
+    matching_files=[file for file in os.listdir("datasets") 
+                    if name in file and file.endswith(".json") ]
     if not matching_files:
         raise ValueError("No such file in datasets directory")
 
@@ -121,8 +137,8 @@ def insert_data(name:str)->None:
         column_parameters=cursor.fetchall()
     if column_parameters is []:
         raise ValueError("No columns in the table")
-    
-    norm_dict={parameter[0]:Normalisation(parameter) for parameter in column_parameters}# parameter[0] is column name
+            # parameter[0] is column name
+    norm_dict={parameter[0]:Normalisation(parameter) for parameter in column_parameters}
     for file in matching_files:
         with open("datasets/"+file,encoding="UTF-8") as f:
             data:list[Dict]=json.load(f)
@@ -141,11 +157,18 @@ def insert_data(name:str)->None:
                 if not fail:
                     insertion_list.append(insertion_tuple)
             with connection.cursor() as cursor:
-                query=sql.SQL("""INSERT INTO {} ({}) VALUES({})""").format\
+                load_funtions()#check wheather needed functionn is loaded
+                query=sql.SQL("""INSERT INTO {} ({}) VALUES({}) 
+                              ON CONFLICT ({}) DO UPDATE
+                              SET {}=DEFAULT --DUMMY VALUE (Won't be executed)
+                              WHERE conflict_resolution(EXCLUDED.{})""").format\
                 (
                     sql.Identifier(name),
                     sql.SQL(",").join(map(sql.Identifier,norm_dict.keys())),
-                    sql.SQL(",").join(sql.Placeholder()*len(norm_dict.keys()))
+                    sql.SQL(",").join(sql.Placeholder()*len(norm_dict.keys())),
+                    sql.Identifier(next(iter(norm_dict.keys()))),
+                    sql.Identifier(next(iter(norm_dict.keys()))),
+                    sql.Identifier(next(iter(norm_dict.keys())))
                 )
                 for itr in insertion_list:
                     print(itr)
@@ -180,7 +203,7 @@ class Normalisation:
             # Unknown type — raise Error
             raise TypeError("Unknown type")
 
-    def __str__(self)->str:
+    def __str__(self)->str: #for debag if needed
         return str(self._col_name)+str(self._data_type)+str(self._is_nullable)
     
     def normalise_value(self,value):

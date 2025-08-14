@@ -1,5 +1,5 @@
 from scripts.setup_db import reset_parameters,create_tables,\
-grant_priveleges,insert_data
+grant_priveleges,insert_data,load_funtions
 
 reset_parameters()
 grant_priveleges()
