@@ -11,6 +11,21 @@ load_dotenv()
 
 @logger
 def reset_parameters()->None:
+    """
+    Resets database user and database parameters using admin connection.
+
+    Reads USER, PASSWORD, and DBNAME from environment variables, recreates or
+    updates the role with the given password, drops the target database if it
+    exists, and creates a new empty database. Revokes privileges before changes.
+
+    Raises
+    ------
+    ConnectionError
+        If admin database connection fails.
+    Exception
+        If required environment variables are missing or if SQL execution fails.
+    """
+
     connection:Connection|None=server_connect(admin=True,admin_db=True)#admin connection
     if not connection:
         raise ConnectionError(f"Cannot connect with admin parameters")
@@ -65,6 +80,18 @@ def reset_parameters()->None:
 
 @logger
 def grant_priveleges(user:str|None=os.getenv("USER"))->None:
+    """
+    Grants USAGE and CREATE privileges on the `public` schema to the specified user.
+
+    By default, the target user is read from the USER environment variable.
+    Requires an admin connection (non-admin database).
+
+    Raises
+    ------
+    Exception
+        If admin connection fails or no user is specified.
+    """
+
     connection:Connection|None=server_connect(admin=True,admin_db=False)
     if not connection:
         raise Exception("Cannot connect to postgres superuser")
@@ -78,6 +105,17 @@ def grant_priveleges(user:str|None=os.getenv("USER"))->None:
 
 @logger
 def revoke_priveleges(user:str|None=os.getenv("USER"))->None:
+    """
+    Revokes all privileges on the `public` schema from the specified user.
+
+    By default, the target user is read from the USER environment variable.
+    Requires an admin connection (non-admin database).
+
+    Raises
+    ------
+    Exception
+        If admin connection fails or no user is specified.
+    """
     connection:Connection|None=server_connect(admin=True,admin_db=False)
     if not connection:
         raise Exception("Cannot connect to postgres superuser")
@@ -91,6 +129,17 @@ def revoke_priveleges(user:str|None=os.getenv("USER"))->None:
 
 @logger
 def create_tables()->None:
+    """
+    Creates database tables from the `sql/tables.sql` script.
+
+    Reads and executes each SQL statement in the file sequentially,
+    committing after each execution.
+
+    Raises
+    ------
+    Exception
+        If the database connection fails.
+    """
     connection:Connection|None=server_connect()
     if not connection:
         raise Exception("Cannot connect to DB")
@@ -105,6 +154,17 @@ def create_tables()->None:
 
 @logger
 def load_funtions()->None:
+    """
+    Loads database functions from the `sql/functions.sql` script.
+
+    Reads and executes each SQL statement in the file sequentially,
+    committing after each execution.
+
+    Raises
+    ------
+    ConnectionError
+        If the database connection fails.
+    """
     connection:Connection|None=server_connect()
     if not connection:
        raise ConnectionError
@@ -118,6 +178,18 @@ def load_funtions()->None:
                     connection.commit()
 
 def refresh_view(view_name:str="ages")->None:
+    """
+    Refreshes the specified materialized view (default: `ages`).
+
+    Ensures the view exists by calling `create_ages_view()`, then runs
+    `REFRESH MATERIALIZED VIEW` to update its contents. Used after each
+    data insertion to maintain data consistency.
+
+    Raises
+    ------
+    ConnectionError
+        If the database connection fails.
+    """
     connection:Connection|None=server_connect()
     if not connection:
         raise ConnectionError
@@ -129,6 +201,24 @@ def refresh_view(view_name:str="ages")->None:
 
 @logger
 def insert_data(name:str)->None:
+    """
+    Inserts data from matching JSON files in `datasets` into the specified table.
+
+    Normalizes values based on table column definitions from `information_schema`,
+    skips rows with invalid values, and uses `ON CONFLICT` to avoid duplicate inserts.
+    Moves processed files to `datasets/parsed` after insertion.
+
+    Ensures required SQL functions are loaded before inserting. After each successful
+    insertion batch, refreshes the `ages` view to keep query results and reports in
+    sync with the latest data.
+
+    Raises
+    ------
+    ValueError
+        If no matching JSON files are found or if the table has no columns.
+    ConnectionError
+        If the database connection fails.
+    """
     matching_files=[file for file in os.listdir("datasets") 
                     if name in file and file.endswith(".json") ]
     if not matching_files:
@@ -189,6 +279,19 @@ def insert_data(name:str)->None:
 
  
 class Normalisation:
+    """
+    Normalizes values for DB insertion based on column metadata.
+
+    Maps SQL types to Python converters (int, float, str, date) and enforces
+    nullability. Raises ValueError for invalid or disallowed null values.
+
+    Raises
+    ------
+    TypeError
+        If the SQL type is unsupported.
+    ValueError
+        If nullability is violated or conversion fails.
+    """
     def __init__(self,parameter:tuple[str,str,str])->None:
         self._col_name,data_type,is_nullable=parameter
 

@@ -9,7 +9,31 @@ logging.basicConfig(
 )
 
 def logger(func):
+    """
+    Decorator that wraps a function with logging of Python and PostgreSQL notice handling.
+
+    - Logs when the function starts and finishes.
+    - If the wrapped function returns a psycopg.Connection object,
+      attaches a notice handler to log PostgreSQL server messages.
+    - Catches ValueError, ConnectionError, and other exceptions,
+      logging them with appropriate severity before re-raising.
+
+    *used by all functions for proper logging
+
+    Parameters
+    ----------
+    func : callable
+        The function to wrap.
+
+    Returns
+    -------
+    callable
+        The wrapped function with logging and notice handling.
+    """
     def wrapper(*args, **kwargs):
+        
+        #shut up the dicttoxml since it produces too many unnecessary info
+        logging.getLogger("dicttoxml").setLevel(logging.WARNING)
         logging.info(f"""Function {func.__name__} is opened""")
 
         def handler(diag:Diagnostic)->None:
