@@ -45,7 +45,7 @@ def test_normalisation() -> None:
         1.3,
         "a",
         "t",
-        "t",
+        None,
         "t",
         "t",
         not_string,

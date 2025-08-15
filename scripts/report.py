@@ -79,6 +79,7 @@ def report_to_json() -> None:
     server_disconnect(connection)
 
 
+@logger
 def report_to_xml() -> None:
     """
     Generates XML reports from SQL files in `sql/reporting`.

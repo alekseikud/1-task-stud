@@ -244,7 +244,7 @@ def insert_data(name: str) -> None:
         if name in file and file.endswith(".json")
     ]
     if not matching_files:
-        raise ValueError("No such file in datasets directory")
+        raise FileNotFoundError("No such file in datasets directory")
 
     connection = server_connect()
     if not connection:
@@ -263,8 +263,8 @@ def insert_data(name: str) -> None:
         column_parameters = cursor.fetchall()
     if column_parameters == []:
         raise ValueError("No columns in the table")
-        # parameter[0] is column name
-    norm_dict = {
+
+    norm_dict = {  # parameter[0] is column name
         parameter[0]: Normalisation(parameter) for parameter in column_parameters
     }
     for file in matching_files:
@@ -310,6 +310,8 @@ def insert_data(name: str) -> None:
         os.system("mkdir datasets/parsed")
         os.system(f"mv datasets/'{file}' datasets/parsed")
     refresh_view()  # every insertion we refresh view
+    insert_data.need_report_json = True  # type: ignore[attr-defined]
+    insert_data.need_report_xml = True  # type: ignore[attr-defined]
 
 
 class Normalisation:
