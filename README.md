@@ -27,11 +27,12 @@ Python + Postgres pipeline that bootstraps a database, loads tables/functions, i
 ├── reports/
 ├── requirements.txt
 ├── scripts
-│   ├── __init__.py
 │   ├── connection.py
 │   ├── logger.py
 │   ├── report.py
 │   ├── setup_db.py
+│   └── test_normalisation.py
+├── tests
 │   └── test_normalisation.py
 └── sql
     ├── create_ages_view.sql
