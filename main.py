@@ -79,12 +79,12 @@ def main():
 
         low = raw.lower()
         if any(word in {"0", "q", "quit", "exit"} for word in low):
-            choise = "something"
-            while choise.lower() not in {"y", "n"}:
-                choise = input("Would you like to close the app? (Y|N)")
-            if choise.lower() == "y":
+            choice = "something"
+            while choice.lower() not in {"y", "n"}:
+                choice = input("Would you like to close the app? (Y|N)")
+            if choice.lower() == "y":
                 break
-            elif choise.lower() == "n":
+            elif choice.lower() == "n":
                 continue
         if any(word in {"h", "help", "?"} for word in low):
             print_menu()  # TODO: need something to write for help statement
