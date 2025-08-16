@@ -78,10 +78,16 @@ def main():
             continue
 
         low = raw.lower()
-        if low in {"0", "q", "quit", "exit"}:
-            break
-        if low in {"h", "help", "?"}:
-            print_menu()
+        if any(word in {"0", "q", "quit", "exit"} for word in low):
+            choise = "something"
+            while choise.lower() not in {"y", "n"}:
+                choise = input("Would you like to close the app? (Y|N)")
+            if choise.lower() == "y":
+                break
+            elif choise.lower() == "n":
+                continue
+        if any(word in {"h", "help", "?"} for word in low):
+            print_menu()  # TODO: need something to write for help statement
             continue
 
         for tok in filter(None, re.split(r"[ ,]+", raw)):

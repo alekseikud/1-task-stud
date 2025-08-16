@@ -28,6 +28,7 @@ services:
     volumes:
       - "./datasets:/app/datasets"
       - "./reports:/app/reports"
+      - "./logger.log:/app/logger.log"
 volumes:
   db_data:
   app_data:
