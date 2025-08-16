@@ -1,11 +1,16 @@
 import logging
+import sys
 from psycopg.errors import Diagnostic
 from psycopg import Connection
 
 logging.basicConfig(
-    filename="logger.log",
     level=logging.DEBUG,
     format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler("logger.log", encoding="utf-8"),
+        logging.StreamHandler(sys.stdout),  # console
+    ],
+    force=True,
 )
 
 
@@ -50,8 +55,8 @@ def logger(func):
 
             if not insert_data.need_report_json:  # type:ignore
                 logging.info(
-                    """No need for reporting.
-                             Reports are up-to-date"""
+                    """No need for reporting.\
+                        Reports are up-to-date"""
                 )
                 return None
             else:
@@ -61,8 +66,8 @@ def logger(func):
 
             if not insert_data.need_report_xml:  # type:ignore
                 logging.info(
-                    """No need for reporting.
-                             Reports are up-to-date"""
+                    """No need for reporting.\
+                        Reports are up-to-date"""
                 )
                 return None
             else:
@@ -82,8 +87,8 @@ def logger(func):
             )
         except ConnectionError as _err:
             logging.warning(
-                f"""[CONNECTION] Function {func.__name__}
-                ran with connection error: {_err}"""
+                f"""[CONNECTION] Function {func.__name__}\
+                    ran with connection error: {_err}"""
             )
         except BaseException as _ex:
             logging.error(f"""Function {func.__name__} ran with exception: {_ex}""")

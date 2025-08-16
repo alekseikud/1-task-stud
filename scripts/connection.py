@@ -13,19 +13,20 @@ def server_connect(
 ) -> psycopg.Connection | None:
     try:
         db_name = os.getenv("DBNAME")
-        user = os.getenv("USER")
+        user = os.getenv("DBUSER")
         password = os.getenv("PASSWORD")
+        host = os.getenv("HOST")
         if admin:
             user = os.getenv("ADMIN")
             password = os.getenv("ADMIN_PASSWORD")
         if admin_db:
             db_name = os.getenv("ADMIN_DBNAME")
         connection: psycopg.Connection = psycopg.connect(
-            dbname=db_name, user=user, password=password
+            dbname=db_name, user=user, password=password, host=host
         )
         return connection
-    except Exception as _ex:
-        raise Exception(f"Exception {_ex} ocurred during connection to server")
+    except ConnectionError as _ex:
+        raise ConnectionError(f"Exception {_ex} ocurred during connection to server")
 
 
 @logger

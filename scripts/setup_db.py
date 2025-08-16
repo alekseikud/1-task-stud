@@ -35,12 +35,12 @@ def reset_parameters() -> None:
     )  # admin connection
     if not connection:
         raise ConnectionError("Cannot connect with admin parameters")
-    role = os.getenv("USER")
+    role = os.getenv("DBUSER")
     password = os.getenv("PASSWORD")
     db_name = os.getenv("DBNAME")
     connection.autocommit = True
     if not role:
-        raise Exception("No such parameter as USER in .env file")
+        raise Exception("No such parameter as DBUSER in .env file")
     if not db_name:
         raise Exception("No such parameter as DBNAME in .env file")
     if not password:
@@ -87,7 +87,7 @@ def reset_parameters() -> None:
 
 
 @logger
-def grant_priveleges(user: str | None = os.getenv("USER")) -> None:
+def grant_priveleges(user: str | None = os.getenv("DBUSER")) -> None:
     """
     Grants USAGE and CREATE privileges on the `public` schema
     to the specified user.
@@ -105,7 +105,7 @@ def grant_priveleges(user: str | None = os.getenv("USER")) -> None:
     if not connection:
         raise Exception("Cannot connect to postgres superuser")
     if not user:
-        raise Exception("No user specified in .env file")
+        raise Exception("No DBUSER specified in .env file")
     query = sql.SQL("GRANT USAGE, CREATE ON SCHEMA public TO ") + sql.Identifier(user)
     with connection.cursor() as cursor:
         cursor.execute(query)
@@ -114,7 +114,7 @@ def grant_priveleges(user: str | None = os.getenv("USER")) -> None:
 
 
 @logger
-def revoke_priveleges(user: str | None = os.getenv("USER")) -> None:
+def revoke_priveleges(user: str | None = os.getenv("DBUSER")) -> None:
     """
     Revokes all privileges on the `public` schema from the specified user.
 
@@ -126,11 +126,13 @@ def revoke_priveleges(user: str | None = os.getenv("USER")) -> None:
     Exception
         If admin connection fails or no user is specified.
     """
-    connection: Connection | None = server_connect(admin=True, admin_db=False)
-    if not connection:
-        raise Exception("Cannot connect to postgres superuser")
-    if not user:
-        raise Exception("No user specified in .env file")
+    try:
+        connection: Connection | None = server_connect(admin=True, admin_db=False)
+    except ConnectionError:
+        logging.info("Database is not created yet. No need to revoke priveleges")
+        return
+    if not user or not connection:
+        raise Exception("No DBUSER specified in .env file")
     query = sql.SQL("REVOKE ALL PRIVILEGES ON SCHEMA public FROM ") + sql.Identifier(
         user
     )
