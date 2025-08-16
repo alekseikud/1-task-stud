@@ -48,25 +48,25 @@ def logger(func):
         if "report_to_json" == func.__name__:
             from scripts.setup_db import insert_data
 
-            if not insert_data.need_report_json:
+            if not insert_data.need_report_json:  # type:ignore
                 logging.info(
                     """No need for reporting.
                              Reports are up-to-date"""
                 )
                 return None
             else:
-                insert_data.need_report_json = False
+                insert_data.need_report_json = False  # type:ignore
         if "report_to_xml" == func.__name__:
             from scripts.setup_db import insert_data
 
-            if not insert_data.need_report_xml:
+            if not insert_data.need_report_xml:  # type:ignore
                 logging.info(
                     """No need for reporting.
                              Reports are up-to-date"""
                 )
                 return None
             else:
-                insert_data.need_report_xml = False
+                insert_data.need_report_xml = False  # type:ignore
         try:
             result = func(*args, **kwargs)
             logging.info(f"""Function {func.__name__} finished successfully""")
