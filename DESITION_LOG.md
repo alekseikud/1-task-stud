@@ -50,8 +50,6 @@ SQL lives in `sql/reporting/*.sql`; a helper view for age calculation is in `sql
 
 ---
 
-Done. Here’s the revised section with that line removed:
-
 ## 3) Indexing & performance choices
 
 **Goal:** fast joins + reporting.
@@ -77,11 +75,11 @@ Done. Here’s the revised section with that line removed:
 
 - **DB bootstrap automation:**  
   Instead of assuming a preexisting DB/user, `reset_parameters()` creates/updates the **role** and **database** idempotently, sets **autocommit** for DROP/CREATE DATABASE, and applies **grants/default privileges**.  
-  *Why:* accourding for the task main aim is: **CONNECT/USAGE/SELECT/INSERT/UPDATE/DELETE**, so it reasonable to isolate **DB** from **DROP DATABASE** or **ALTER ROLE**
+  *Why:* accourding for the task main aim is: **CONNECT/USAGE/SELECT/INSERT/UPDATE/DELETE**, so it is reasonable to isolate **DB** from **DROP DATABASE** or **ALTER ROLE**
 
 ---
 
-## 5) What I added **beyond** the spec
+## 5) What was added **beyond** the spec
 
 - **Full Docker workflow**  
   - `docker-compose.yaml`: Postgres + app, healthcheck using `pg_isready`.  
