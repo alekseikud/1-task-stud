@@ -48,7 +48,7 @@ ACTIONS = {
             run("report_to_xml", report_to_xml),
         ),
     ),
-    "9": ("rerun full setup", run_setup),
+    "6": ("rerun full setup", run_setup),
 }
 
 
@@ -59,7 +59,7 @@ def print_menu():
     print("3. report_to_json()")
     print("4. report_to_xml()")
     print("5. report both (json+xml)")
-    print("9. rerun full setup")
+    print("6. rerun full setup")
     print("0. exit")
     print("Tip: you can enter multiple actions like: 1 3 4 or 1,3,4\n")
 
