@@ -50,8 +50,6 @@ SQL lives in `sql/reporting/*.sql`; a helper view for age calculation is in `sql
 
 ---
 
-Done. Here’s the revised section with that line removed:
-
 ## 3) Indexing & performance choices
 
 **Goal:** fast joins + reporting.
