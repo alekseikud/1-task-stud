@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS fk_room_idx ON students(room)

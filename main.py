@@ -1,12 +1,14 @@
 # main.py
 import re
+import os
 
 from scripts.setup_db import (
     reset_parameters,
     grant_priveleges,
     create_tables,
-    load_funtions,  # (spelling kept as in your code)
+    load_functions,
     insert_data,
+    load_indexes,
 )
 from scripts.report import report_to_json, report_to_xml
 
@@ -23,7 +25,8 @@ def run_setup():
     run("reset_parameters", reset_parameters)
     run("grant_priveleges", grant_priveleges)
     run("create_tables", create_tables)
-    run("load_funtions", load_funtions)
+    run("load_funtions", load_functions)
+    run("load_indexes", load_indexes)
     # defaults for seeding
     insert_data.need_report_json = False  # type: ignore[attr-defined]
     insert_data.need_report_xml = False  # type: ignore[attr-defined]
@@ -65,6 +68,7 @@ def print_menu():
 
 
 def main():
+    os.system("echo -n > logger.log")  # clean the log file
     run_setup()  # auto-run at start
 
     while True:

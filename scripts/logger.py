@@ -90,6 +90,7 @@ def logger(func):
                 f"""[CONNECTION] Function {func.__name__}\
                     ran with connection error: {_err}"""
             )
+            raise _err
         except BaseException as _ex:
             logging.error(f"""Function {func.__name__} ran with exception: {_ex}""")
             raise

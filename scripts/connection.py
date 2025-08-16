@@ -25,7 +25,7 @@ def server_connect(
             dbname=db_name, user=user, password=password, host=host
         )
         return connection
-    except ConnectionError as _ex:
+    except Exception as _ex:
         raise ConnectionError(f"Exception {_ex} ocurred during connection to server")
 
 

@@ -129,10 +129,13 @@ def revoke_priveleges(user: str | None = os.getenv("DBUSER")) -> None:
     try:
         connection: Connection | None = server_connect(admin=True, admin_db=False)
     except ConnectionError:
-        logging.info("Database is not created yet. No need to revoke priveleges")
+        logging.info(
+            "[ATTENTION] Previous WARNING is not a WARNING. Tried to revoke \
+                     priveleges, however Database was not created at that moment."
+        )
         return
     if not user or not connection:
-        raise Exception("No DBUSER specified in .env file")
+        raise EnvironmentError("No DBUSER specified in .env file")
     query = sql.SQL("REVOKE ALL PRIVILEGES ON SCHEMA public FROM ") + sql.Identifier(
         user
     )
@@ -166,10 +169,11 @@ def create_tables() -> None:
                 if query:
                     cursor.execute(query)  # type:ignore
                     connection.commit()
+    server_disconnect(connection)
 
 
 @logger
-def load_funtions() -> None:
+def load_functions() -> None:
     """
     Loads database functions from the `sql/functions.sql` script.
 
@@ -192,8 +196,10 @@ def load_funtions() -> None:
                 if query:
                     cursor.execute(query)  # type:ignore
                     connection.commit()
+    server_disconnect(connection)
 
 
+@logger
 def refresh_view(view_name: str = "ages") -> None:
     """
     Refreshes the specified materialized view (default: `ages`).
@@ -216,6 +222,26 @@ def refresh_view(view_name: str = "ages") -> None:
         create_ages_view()  # ensure view exist
         cursor.execute("""REFRESH MATERIALIZED VIEW "ages" """)
         connection.commit()
+    server_disconnect(connection)
+
+
+@logger
+def load_indexes() -> None:
+    connection: Connection | None = server_connect()
+    if not connection:
+        raise ConnectionError
+    with connection.cursor() as cursor:
+        with open("sql/indexes.sql", encoding="UTF-8") as file:
+            queries = sqlparse.split(file.read())
+            try:
+                for query in queries:
+                    if query:
+                        cursor.execute(query.strip())  # type:ignore
+                connection.commit()
+            except Exception:
+                connection.rollback()
+            finally:
+                server_disconnect(connection)
 
 
 @logger
@@ -293,7 +319,7 @@ def insert_data(name: str) -> None:
                 if not fail:
                     insertion_list.append(insertion_tuple)
             with connection.cursor() as cursor:
-                load_funtions()  # check wheather needed functionn is loaded
+                load_functions()  # check wheather needed functionn is loaded
                 query = sql.SQL(
                     """INSERT INTO {} ({}) VALUES({})
                               ON CONFLICT ({}) DO UPDATE
@@ -314,6 +340,7 @@ def insert_data(name: str) -> None:
     refresh_view()  # every insertion we refresh view
     insert_data.need_report_json = True  # type: ignore[attr-defined]
     insert_data.need_report_xml = True  # type: ignore[attr-defined]
+    server_disconnect(connection)
 
 
 class Normalisation:
