@@ -14,6 +14,7 @@ class test_class:
 
 @logger
 def test_normalisation() -> None:
+    logging.info("[TEST] test_normalisation started")
     pg_types = [
         "integer",
         "smallint",
@@ -66,3 +67,4 @@ def test_normalisation() -> None:
     for test, value in zip(test_parameters, incorrect_pg_values):
         with pytest.raises((ValueError, TypeError)):
             test.normalise_value(str(value))
+    logging.info("[TEST] test_normalisation finished")

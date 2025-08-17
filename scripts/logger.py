@@ -79,7 +79,7 @@ def logger(func):
                 result.add_notice_handler(handler)
             return result
         except FileNotFoundError:
-            logging.info("""No files to read from.Skip""")
+            logging.info("""[FILE] No files to read from.Skip""")
             return None
         except ValueError as _err:
             logging.warning(
@@ -92,7 +92,9 @@ def logger(func):
             )
             raise _err
         except BaseException as _ex:
-            logging.error(f"""Function {func.__name__} ran with exception: {_ex}""")
+            logging.error(
+                f"""[UNKNOWN] Function {func.__name__} ran with exception: {_ex}"""
+            )
             raise
 
     return wrapper

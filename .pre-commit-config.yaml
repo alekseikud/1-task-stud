@@ -11,3 +11,11 @@ repos:
     rev: v0.3.0
     hooks:
       - id: ruff
+  - repo: local
+    hooks:
+      - id: pytest
+        name: Run pytest
+        entry: pytest
+        language: system
+        pass_filenames: false
+
