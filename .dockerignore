@@ -30,7 +30,7 @@ reports/
 .gitignore
 *.swp
 *.swo
-*.DS_Store
+.DS_Store
 
 # Local config / env files
 .env
