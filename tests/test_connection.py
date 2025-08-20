@@ -25,7 +25,7 @@ def test_root_connection(monkeypatch) -> None:
     logging.info("[TEST] test_root_connection started")
     monkeypatch.setenv("HOST", "localhost")
     monkeypatch.setenv("PORT", "5432")
-    connection: Connection | None = server_connect(admin=False, admin_db=False)
+    connection: Connection | None = server_connect(admin=True, admin_db=True)
     assert isinstance(connection, Connection)
     with connection.cursor() as cursor:
         cursor.execute("SELECT version();")
